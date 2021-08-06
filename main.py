@@ -16,7 +16,7 @@ async def whenrating(ctx, name, rating, variant="Rapid"):
     await ctx.send("Error: Rating must be an integer.")
     return
   try:
-      prob_success,predicted_date = expected_date(name,int(rating),variant)
+      prob_success, predicted_date = expected_date(name,int(rating),variant)
       await ctx.sendf(f"{name} has a {prob_success} chance of reaching a {variant} rating of {rating} within the next 2 years. If {name} succeeds, I predict the rating will be achieved around {predicted_date}.")  
   except:
       date = await expected_date(name, int(rating), variant)
