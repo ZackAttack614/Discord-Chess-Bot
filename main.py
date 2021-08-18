@@ -17,7 +17,9 @@ async def willrating(ctx, name, rating, variant="Rapid"):
     return
   error_msg, prob_success, predicted_date = expected_date(name,int(rating),variant)
   if error_msg == 'No error':
-    await ctx.send(f"{name} has a {prob_success} chance of reaching a {variant} rating of {rating} within the next 2 years. If {name} succeeds, I predict the rating will be achieved around {predicted_date}.")  
+    msg = f"{name} {rating} {variant}: {prob_success} chance within 2 years."
+    if int(prob_success[:-1]) > 5: msg += f" If success, expected date is {predicted_date}."
+    await ctx.send(msg)  
   else:
     await ctx.send(error_msg)
 
