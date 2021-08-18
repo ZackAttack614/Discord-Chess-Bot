@@ -17,9 +17,9 @@ async def willrating(ctx, name, rating, variant="Rapid"):
     return
   error_msg, prob_success, predicted_date = expected_date(name,int(rating),variant)
   if error_msg == 'No error':
-    await ctx.sendf(f"{name} has a {prob_success} chance of reaching a {variant} rating of {rating} within the next 2 years. If {name} succeeds, I predict the rating will be achieved around {predicted_date}.")  
+    await ctx.send(f"{name} has a {prob_success} chance of reaching a {variant} rating of {rating} within the next 2 years. If {name} succeeds, I predict the rating will be achieved around {predicted_date}.")  
   else:
-    await ctx.sendf(error_msg)
+    await ctx.send(error_msg)
 
 # slash = discord_slash.SlashCommand(bot, sync_commands=True)
 # @slash.slash(name="willrating", description="Enter a lichess username and a rating to see the probability you'll achieve the rating, and when you're expected to do so, if ever.")
