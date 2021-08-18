@@ -89,51 +89,23 @@ async def score(username,target_rating,variant,model_params):
     response = requests.get(url)
     response_json = response.json()
     if not str(response.status_code).startswith('2'):
-        return -1
+        return ("Error retrieving lichess data.",None,None)
     else:
         rating_history = process_rating_history(response_json)
         predictor_values = get_predictor_values(rating_history,target_rating,variant)
+        # Add insufficient rating history error and other errors
         prob_success = get_prob_success(predictor_values,model_params)
         predicted_date = get_predicted_date(predictor_values,model_params)
-        return(prob_success,predicted_date)
+        return('No error',prob_success,predicted_date)
 
 
 async def expected_date(name, rating, variant='Rapid'):
     if variant in ['Bullet','Blitz','Rapid','Classical']:
-        prob_success,predicted_date = score(username = name, target_rating = rating,
+        error,prob_success,predicted_date = score(username = name, target_rating = rating,
           variant = variant, model_params = model_params)
-        return(prob_success,predicted_date)
-    url = f'https://lichess.org/api/user/{name}/rating-history'
-    response = requests.get(url)
-    if not str(response.status_code).startswith('2'):
-        return -1
-    data = requests.get(url).json()
-    rating_values = []
-    exp_rating_values = []
-    date_values = []
-    points = []
-    
-    for game_type in data:
-        if game_type['name'] != variant:
-            continue
-        else:
-            points = game_type['points']
+        return(error,prob_success,predicted_date)
+    else:
+        return("Error: variant not supported. Try bullet, blitz, rapid, or classical.",None,None)
 
-    if len(points) < 25:
-        return None
-
-    for point in points:
-        date_values.append(datetime.date(point[0], point[1]+1, point[2]))
-        exp_rating_values.append(3 ** (point[3] / 300))
-        rating_values.append(point[3])
-
-    # Compute the best-fit line
-    start_date = min(date_values)
-    days_since_start_values = [(date-start_date).days for date in date_values]
-
-    coeffs = np.polyfit(days_since_start_values, exp_rating_values, 1)
-
-    days_since_start = ((3 ** (rating/300)) - coeffs[1])/coeffs[0]
-    return start_date + datetime.timedelta(days=days_since_start)
 
 
