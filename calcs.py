@@ -17,7 +17,7 @@ def process_rating_history(response_json):
             rating_history[x['name']] = tbl
     return(rating_history)
 
-# Get the values that are inputs to the models
+# Calculate the values that are inputs to the models
 def get_predictor_values(rating_history,target_rating,variant):
     target_rating_history = rating_history[variant]
     t_minus_30 = datetime.today()-timedelta(days=30)
@@ -82,16 +82,16 @@ def get_predicted_date(predictor_values,model_params):
     predicted_date = (datetime.today()+timedelta(days=predicted_days)).strftime(format="%B %d, %Y")
     return(predicted_date)
 
-# Return the predictions based on discord inputs
+# Calculate the scores based on inputs
 def score(username,target_rating,variant,model_params):
     url = f'https://lichess.org/api/user/{username}/rating-history'
     response = requests.get(url)
     if not str(response.status_code).startswith('2'):
-        return (f"Error retrieving lichess data for user {username}.",None,None)
+        return (f"Error: can't retrieve lichess data for user {username}.",None,None)
     else:
         response_json = response.json()
         if len(response_json) == 0:
-            return ("No lichess data available",None,None)
+            return ("Error: no lichess data available",None,None)
         rating_history = process_rating_history(response_json)
         predictor_values = get_predictor_values(rating_history,target_rating,variant)
         if predictor_values['rating_latest'] >= target_rating:
@@ -102,11 +102,16 @@ def score(username,target_rating,variant,model_params):
         predicted_date = get_predicted_date(predictor_values,model_params)
         return('No error',prob_success,predicted_date)
 
-def expected_date(name, rating, variant='Rapid'):
-    if rating >= 3200:
+# Check if discord inputs are valid, and if so return the predictions
+def process_inputs(name, rating, variant='Rapid'):
+    # Check that rating is valid
+    if not rating.isnumeric():
+        return("Error: rating must be a positive integer.",None,None)
+    elif int(rating) >= 3200:
         return("Error: please submit a rating below 3200.",None,None)
+    # Check that variant is valid
     elif variant.title() in ['Bullet','Blitz','Rapid','Classical']:
-        error,prob_success,predicted_date = score(username = name, target_rating = rating,
+        error,prob_success,predicted_date = score(username = name, target_rating = int(rating),
           variant = variant.capitalize(), model_params = model_params)
         return(error,prob_success,predicted_date)
     else:
