@@ -36,8 +36,8 @@ def get_predictor_values(rating_history,target_rating,variant):
         rapid = int(variant == 'Rapid'), classical = int(variant == 'Classical'),
         rating_peak_diff = rating_latest-target_rating_history['rating'].max(),
         rating_30_diff = rating_latest-target_rating_history_30['rating'].values[0] if len(target_rating_history_30) > 0 else 0,
-        rating_90_diff = rating_latest-target_rating_history_90['rating'].values[0],
-        rating_180_diff = rating_latest-target_rating_history_180['rating'].values[0],
+        rating_90_diff = rating_latest-target_rating_history_90['rating'].values[0] if len(target_rating_history_90) > 0 else 0,
+        rating_180_diff = rating_latest-target_rating_history_180['rating'].values[0] if len(target_rating_history_180) > 0 else 0,
         rating_updates_30 = len(target_rating_history_30['rating']),
         rating_updates_90 = len(target_rating_history_90['rating']),
         rating_stdev_30 = target_rating_history_30['rating'].std() if len(target_rating_history_30) > 1 else 0,
@@ -60,7 +60,8 @@ def get_prob_success(predictor_values,model_params):
         else:
             value = predictor_values[var_name]
         linear_combo += coef*value
-    return str(round(100*1/(1+np.exp(-1*(linear_combo)))))+"%"
+    prob_success = 100*1/(1+np.exp(-1*(linear_combo)))
+    return str(round(prob_success))+"%"
 
 # Calculate the predicted days until target rating given a set of predictor values and a regression model
 def get_predicted_date(predictor_values,model_params):
@@ -93,11 +94,13 @@ def score(username,target_rating,variant,model_params):
         if len(response_json) == 0:
             return ("Error: no lichess data available",None,None)
         rating_history = process_rating_history(response_json)
+        if variant not in rating_history:
+            return(f"Error: user {username} has no rating history for variant {variant.title()}.",None,None)
         predictor_values = get_predictor_values(rating_history,target_rating,variant)
         if predictor_values['rating_latest'] >= target_rating:
             return(f"Congrats! {username} has already achieved the target rating {target_rating} {variant}.",None,None)
-        elif predictor_values['target_rating_gain'] > 1200:
-            return("Error: please submit a target rating gain of less than +1200 points.",None,None)
+        elif predictor_values['target_rating_gain'] > 1000:
+            return("Error: please submit a target rating gain of less than +1000 points.",None,None)
         prob_success = get_prob_success(predictor_values,model_params)
         predicted_date = get_predicted_date(predictor_values,model_params)
         return('No error',prob_success,predicted_date)
