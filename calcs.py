@@ -3,7 +3,7 @@ from datetime import *
 import numpy as np
 import pandas as pd
 
-model_params = pd.read_csv("data/model_params_20210817.csv")
+model_params = pd.read_csv("data/model_params_20210820.csv")
 
 # Convert rating history info from JSON to Dataframe
 def process_rating_history(response_json):
@@ -87,16 +87,17 @@ def score(username,target_rating,variant,model_params):
     url = f'https://lichess.org/api/user/{username}/rating-history'
     response = requests.get(url)
     if not str(response.status_code).startswith('2'):
-        return ("Error retrieving lichess data",None,None)
+        return (f"Error retrieving lichess data for user {username}.",None,None)
     else:
         response_json = response.json()
         if len(response_json) == 0:
             return ("No lichess data available",None,None)
         rating_history = process_rating_history(response_json)
         predictor_values = get_predictor_values(rating_history,target_rating,variant)
-        # Add insufficient rating history error and other errors
         if predictor_values['rating_latest'] >= target_rating:
-            return("Congrats: user has already achieved the target rating.",None,None)
+            return(f"Congrats! {username} has already achieved the target rating {target_rating} {variant}.",None,None)
+        elif predictor_values['target_rating_gain'] > 1200:
+            return("Error: please submit a target rating gain of less than +1200 points.",None,None)
         prob_success = get_prob_success(predictor_values,model_params)
         predicted_date = get_predicted_date(predictor_values,model_params)
         return('No error',prob_success,predicted_date)
