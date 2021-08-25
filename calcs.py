@@ -3,7 +3,7 @@ from datetime import *
 import numpy as np
 import pandas as pd
 
-model_params = pd.read_csv("data/model_params_20210820.csv")
+model_params = pd.read_csv("data/model_params_20210825.csv")
 
 # Convert rating history info from JSON to Dataframe
 def process_rating_history(response_json):
