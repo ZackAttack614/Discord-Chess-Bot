@@ -6,7 +6,7 @@ import pandas as pd
 model_params = pd.read_csv("data/model_params_20210825.csv")
 
 # Convert rating history info from JSON to Dataframe
-def process_rating_history(response_json):
+async def process_rating_history(response_json):
     rating_history = dict()
     for x in response_json:
         if x['name'] in ['Bullet','Blitz','Rapid','Classical'] and len(x['points']) > 0:
@@ -18,7 +18,7 @@ def process_rating_history(response_json):
     return(rating_history)
 
 # Calculate the values that are inputs to the models
-def get_predictor_values(rating_history,target_rating,variant):
+async def get_predictor_values(rating_history,target_rating,variant):
     target_rating_history = rating_history[variant]
     t_minus_30 = datetime.today()-timedelta(days=30)
     t_minus_90 = datetime.today()-timedelta(days=90)
@@ -46,7 +46,7 @@ def get_predictor_values(rating_history,target_rating,variant):
     return(predictor_values)
 
 # Calculate the probability of success given a set of predictor values and a classification model
-def get_prob_success(predictor_values,model_params):
+async def get_prob_success(predictor_values,model_params):
     logit_params = model_params[['var_name','logit']].dropna()
     linear_combo = 0
     for i in range(len(logit_params)):
@@ -64,7 +64,7 @@ def get_prob_success(predictor_values,model_params):
     return str(round(prob_success))+"%"
 
 # Calculate the predicted days until target rating given a set of predictor values and a regression model
-def get_predicted_date(predictor_values,model_params):
+async def get_predicted_date(predictor_values,model_params):
     ols_params = model_params[['var_name','ols']].dropna()
     predicted_days = 0
     for i in range(len(ols_params)):
@@ -84,7 +84,7 @@ def get_predicted_date(predictor_values,model_params):
     return(predicted_date)
 
 # Calculate the scores based on inputs
-def score(username,target_rating,variant,model_params):
+async def score(username,target_rating,variant,model_params):
     url = f'https://lichess.org/api/user/{username}/rating-history'
     response = requests.get(url)
     if not str(response.status_code).startswith('2'):
@@ -93,20 +93,20 @@ def score(username,target_rating,variant,model_params):
         response_json = response.json()
         if len(response_json) == 0:
             return ("Error: no lichess data available",None,None)
-        rating_history = process_rating_history(response_json)
+        rating_history = await process_rating_history(response_json)
         if variant not in rating_history:
             return(f"Error: user {username} has no rating history for variant {variant.title()}.",None,None)
-        predictor_values = get_predictor_values(rating_history,target_rating,variant)
+        predictor_values = await get_predictor_values(rating_history,target_rating,variant)
         if predictor_values['rating_latest'] >= target_rating:
             return(f"Congrats! {username} has already achieved the target rating {target_rating} {variant}.",None,None)
         elif predictor_values['target_rating_gain'] > 1000:
             return("Error: please submit a target rating gain of less than +1000 points.",None,None)
-        prob_success = get_prob_success(predictor_values,model_params)
-        predicted_date = get_predicted_date(predictor_values,model_params)
+        prob_success = await get_prob_success(predictor_values,model_params)
+        predicted_date = await get_predicted_date(predictor_values,model_params)
         return('No error',prob_success,predicted_date)
 
 # Check if discord inputs are valid, and if so return the predictions
-def process_inputs(name, rating, variant='Rapid'):
+async def process_inputs(name, rating, variant='Rapid'):
     # Check that rating is valid
     if not rating.isnumeric():
         return("Error: rating must be a positive integer.",None,None)
@@ -114,7 +114,7 @@ def process_inputs(name, rating, variant='Rapid'):
         return("Error: please submit a rating below 3200.",None,None)
     # Check that variant is valid
     elif variant.title() in ['Bullet','Blitz','Rapid','Classical']:
-        error,prob_success,predicted_date = score(username = name, target_rating = int(rating),
+        error,prob_success,predicted_date = await score(username = name, target_rating = int(rating),
           variant = variant.capitalize(), model_params = model_params)
         return(error,prob_success,predicted_date)
     else:
