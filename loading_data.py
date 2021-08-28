@@ -7,7 +7,7 @@ from collections import defaultdict
 usernames = set()
 user_ratings = defaultdict(dict)
 
-offset = 1000
+offset = 61000
 size = 10000
 
 with open('data/june_2019_users.txt') as fin:

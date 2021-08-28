@@ -10,8 +10,8 @@ with open('secrets.json') as fin:
   secrets = json.load(fin)
 
 bot = commands.Bot(command_prefix='!', help_command=None)
-@bot.command(name="willrating")
-async def willrating(ctx, name, rating, variant="Rapid"):
+@bot.command(name="whenrating")
+async def whenrating(ctx, name, rating, variant="Rapid"):
   error_msg, prob_success, predicted_date = process_inputs(name,rating,variant)
   if error_msg == 'No error':
     msg = f"{name} {rating} {variant.title()}: {prob_success} chance within 2 years."
@@ -21,8 +21,8 @@ async def willrating(ctx, name, rating, variant="Rapid"):
     await ctx.send(error_msg)
 
 # slash = discord_slash.SlashCommand(bot, sync_commands=True)
-# @slash.slash(name="willrating", description="Enter a lichess username and a rating to see the probability you'll achieve the rating, and when you're expected to do so, if ever.")
-# async def _willrating(ctx, name, rating, variant="Rapid"):
-#   await willrating(ctx, name, rating, variant)
+# @slash.slash(name="whenrating", description="Enter a lichess username and a rating to see the probability you'll achieve the rating, and when you're expected to do so, if ever.")
+# async def _whenrating(ctx, name, rating, variant="Rapid"):
+#   await whenrating(ctx, name, rating, variant)
 
 bot.run(secrets.get('discord-token'))
