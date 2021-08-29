@@ -2,7 +2,7 @@ import pandas as pd
 from datetime import *
 import statsmodels.formula.api as smf
 
-df_bin = pd.read_csv("data/lichess_swiss_processed.csv")
+df_bin = pd.read_csv("data/lichess_swiss_processed_sample.csv")
 df_cont = df_bin[df_bin['y_bin']==1].copy()
 df_bin_train = df_bin.sample(frac=.8,random_state=1)
 df_bin_test = df_bin.loc[~df_bin.index.isin(df_bin_train.index)].copy()
