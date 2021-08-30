@@ -1,8 +1,6 @@
 import json
 
 import discord
-import discord_slash
-
 from discord.ext import commands
 from calcs import process_inputs
 
@@ -19,10 +17,5 @@ async def whenrating(ctx, name, rating, variant="Rapid"):
     await ctx.send(msg)  
   else:
     await ctx.send(error_msg)
-
-# slash = discord_slash.SlashCommand(bot, sync_commands=True)
-# @slash.slash(name="whenrating", description="Enter a lichess username and a rating to see the probability you'll achieve the rating, and when you're expected to do so, if ever.")
-# async def _whenrating(ctx, name, rating, variant="Rapid"):
-#   await whenrating(ctx, name, rating, variant)
 
 bot.run(secrets.get('discord-token'))
