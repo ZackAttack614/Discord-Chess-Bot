@@ -7,3 +7,4 @@ __pycache__/
 secrets.json
 *.json
 june_2019_users.txt
+scrap.py

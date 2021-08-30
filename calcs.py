@@ -2,6 +2,7 @@ import requests
 from datetime import *
 import numpy as np
 import pandas as pd
+import json
 
 model_params = pd.read_csv("data/model_params_20210825.csv")
 
@@ -83,14 +84,23 @@ async def get_predicted_date(predictor_values,model_params):
     predicted_date = (datetime.today()+timedelta(days=predicted_days)).strftime(format="%B %d, %Y")
     return(predicted_date)
 
+def get_mock_data(username):
+    f = open(f"mock_data/{username}.json")
+    data = json.load(f)
+    f.close()
+    return data
+
 # Calculate the scores based on inputs
-async def score(username,target_rating,variant,model_params):
+async def score(username,target_rating,variant,model_params,testing=False):
+    if testing == True:
+        try: response_json = get_mock_data(username)
+        except: return (f"Error: can't retrieve lichess data for user {username}.",None,None)
     url = f'https://lichess.org/api/user/{username}/rating-history'
     response = requests.get(url)
     if not str(response.status_code).startswith('2'):
         return (f"Error: can't retrieve lichess data for user {username}.",None,None)
     else:
-        response_json = response.json()
+        if testing == False: response_json = response.json()
         if len(response_json) == 0:
             return ("Error: no lichess data available",None,None)
         rating_history = await process_rating_history(response_json)
@@ -106,7 +116,7 @@ async def score(username,target_rating,variant,model_params):
         return('No error',prob_success,predicted_date)
 
 # Check if discord inputs are valid, and if so return the predictions
-async def process_inputs(name, rating, variant='Rapid'):
+async def process_inputs(name, rating, variant='Rapid',testing=False):
     # Check that rating is valid
     if not rating.isnumeric():
         return("Error: rating must be a positive integer.",None,None)
@@ -115,7 +125,7 @@ async def process_inputs(name, rating, variant='Rapid'):
     # Check that variant is valid
     elif variant.title() in ['Bullet','Blitz','Rapid','Classical']:
         error,prob_success,predicted_date = await score(username = name, target_rating = int(rating),
-          variant = variant.capitalize(), model_params = model_params)
+          variant = variant.capitalize(), model_params = model_params,testing=testing)
         return(error,prob_success,predicted_date)
     else:
         return("Error: variant not supported. Try bullet, blitz, rapid, or classical.",None,None)

@@ -6,3 +6,4 @@ pandas
 ndjson
 datetime
 statsmodels
+json
