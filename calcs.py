@@ -44,6 +44,7 @@ async def get_predictor_values(rating_history,target_rating,variant):
         rating_180_diff = rating_latest-target_rating_history_180['rating'].values[0] if len(target_rating_history_180) > 0 else 0,
         rating_updates_30 = len(target_rating_history_30),
         rating_updates_90 = len(target_rating_history_90),
+        rating_updates_180 = len(target_rating_history_180),
         # Number of rating updates before 30 days ago
         rating_updates_pre_30 = len(target_rating_history_pre_30),
         rating_stdev_30 = target_rating_history_30['rating'].std() if len(target_rating_history_30) > 1 else 0,
@@ -111,7 +112,7 @@ async def score(username,target_rating,variant,model_params,testing=False):
             return(True,"Error: please submit a target rating gain of less than +1000 points.",None,None)
         prob_success = await get_prob_success(predictor_values,model_params)
         predicted_date = await get_predicted_date(predictor_values,model_params)
-        if predictor_values['rating_updates_pre_30'] == 0 or predictor_values['rating_updates_30'] == 0:
+        if predictor_values['rating_updates_pre_30'] == 0 or predictor_values['rating_updates_30'] == 0 or predictor_values['rating_updates_180'] < 5:
             return(True,f"Warning: results may be unreliable due to limited {variant} data for user {username}.",
                     prob_success,predicted_date)
         return(False,None,prob_success,predicted_date)
