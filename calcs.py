@@ -82,9 +82,9 @@ async def get_predicted_date(predictor_values,model_params):
 class Mock_Response():
     def __init__(self,username):
         self.username = username
-        self.response_code = 200 if f"{username}.json" in os.listdir("mock_data") else 400
+        self.status_code = 200 if f"{username}.json" in os.listdir("mock_data") else 400
     def json(self):
-        with open(f"mock_data/{username}.json") as f:
+        with open(f"mock_data/{self.username}.json") as f:
             data = json.load(f)
             return data
 
@@ -109,11 +109,11 @@ async def score(username,target_rating,variant,model_params,testing=False):
             return(True,f"Error: {username} has already achieved the target rating {target_rating} {variant}.",None,None)
         elif predictor_values['target_rating_gain'] > 1000:
             return(True,"Error: please submit a target rating gain of less than +1000 points.",None,None)
-        elif predictor_values['rating_updates_pre_30'] == 0 or predictor_values['rating_updates_30'] == 0:
-            return(True,f"Warning: results may be unreliable due to limited {variant} data for user {username}",
-                    prob_success,predicted_date)
         prob_success = await get_prob_success(predictor_values,model_params)
         predicted_date = await get_predicted_date(predictor_values,model_params)
+        if predictor_values['rating_updates_pre_30'] == 0 or predictor_values['rating_updates_30'] == 0:
+            return(True,f"Warning: results may be unreliable due to limited {variant} data for user {username}.",
+                    prob_success,predicted_date)
         return(False,None,prob_success,predicted_date)
 
 # Check if discord inputs are valid, and if so return the predictions
