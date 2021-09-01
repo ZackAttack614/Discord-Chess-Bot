@@ -1,9 +1,6 @@
 discord.py
-discord-py-slash-command
 numpy
 requests
 pandas
 ndjson
-datetime
 statsmodels
-json

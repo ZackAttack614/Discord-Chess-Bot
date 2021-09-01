@@ -6,19 +6,19 @@ class TestDiscordBotProcessInputsFuncs(aiounittest.AsyncTestCase):
 
     async def test_rating_is_numeric(self):
         self.assertEqual(await calcs.process_inputs("nihalsarin2004", "wrong", "Rapid",testing=True), 
-        ("Error: rating must be a positive integer.", None, None))
+        (True, "Error: rating must be a positive integer.", None, None))
 
     async def test_rating_is_below_3200(self):
         self.assertEqual(await calcs.process_inputs("ZackAttack614", "3201", "rapid",testing=True), 
-        ("Error: please submit a rating below 3200.", None, None))
+        (True, "Error: please submit a rating below 3200.", None, None))
 
     async def test_variant_type(self):
         self.assertEqual(await calcs.process_inputs("johndavis_59", "2000", "Puzzles",testing=True), 
-        ("Error: variant not supported. Try bullet, blitz, rapid, or classical.",None,None))
+        (True, "Error: variant not supported. Try bullet, blitz, rapid, or classical.",None,None))
 
     async def test_variant_type_2(self):
         self.assertEqual(await calcs.process_inputs("HumanSponge", "2000", "fun_chess_variant_5",testing=True), 
-        ("Error: variant not supported. Try bullet, blitz, rapid, or classical.",None,None))
+        (True, "Error: variant not supported. Try bullet, blitz, rapid, or classical.",None,None))
 
     async def test_default_variant_is_rapid(self):
         self.assertTrue(await calcs.process_inputs("bali1331", "2100",testing=True), 
