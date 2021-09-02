@@ -92,10 +92,7 @@ class Mock_Response():
 # Calculate the scores based on inputs
 async def score(username,target_rating,variant,model_params,testing=False):
     url = f'https://lichess.org/api/user/{username}/rating-history'
-    if testing:
-        response = Mock_Response(username)
-    else:
-        response = requests.get(url)
+    response = Mock_Response(username) if testing else requests.get(url)
     if response.status_code != 200:
         return (True,f"Error: can't retrieve lichess data for user {username}.",None,None)
     else:
